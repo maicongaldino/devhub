@@ -1,0 +1,116 @@
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #111827;
+}
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+.code-preview {
+  font-family: "Courier New", Courier, monospace;
+}
+
+.module-link.active {
+  background-color: #1f2937;
+  color: #fff;
+  border-left: 3px solid #6366f1;
+}
+
+.topic-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  padding-left: 0.75rem;
+}
+
+.subtopic-link {
+  display: block;
+  padding: 0.4rem 0.75rem 0.4rem 1.5rem;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+}
+.subtopic-link:hover {
+  color: #fff;
+  background-color: rgba(31, 41, 55, 0.5);
+}
+.subtopic-link.active {
+  color: #818cf8;
+  border-left-color: #818cf8;
+  background-color: rgba(31, 41, 55, 0.5);
+}
+
+.subtopic-link i {
+  opacity: 0.7;
+  margin-right: 0.5rem;
+  width: 16px;
+  text-align: center;
+}
+
+.hidden-section {
+  display: none;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#search-results {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.search-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.search-item:hover {
+  background-color: rgba(55, 65, 81, 0.5);
+}
+
+.sub-header-concept {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #818cf8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+.sub-header-example {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #34d399;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+html {
+  scroll-behavior: smooth;
+}
