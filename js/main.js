@@ -138,6 +138,7 @@ function switchView(viewName) {
 window.addEventListener("load", () => {
   switchView("home");
   setTimeout(buildSearchIndex, 500);
+  initResponsiveSidebar();
 });
 
 document.addEventListener("click", (e) => {
@@ -149,3 +150,51 @@ document.addEventListener("click", (e) => {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
+
+function openSidebar() {
+  const aside = document.querySelector('aside');
+  const overlay = document.getElementById('overlay');
+  aside.classList.remove('-translate-x-full');
+  overlay.classList.remove('hidden');
+  document.body.classList.add('overflow-hidden');
+}
+
+function closeSidebar() {
+  const aside = document.querySelector('aside');
+  const overlay = document.getElementById('overlay');
+  aside.classList.add('-translate-x-full');
+  overlay.classList.add('hidden');
+  document.body.classList.remove('overflow-hidden');
+}
+
+function toggleSidebar() {
+  const aside = document.querySelector('aside');
+  if (aside.classList.contains('-translate-x-full')) {
+    openSidebar();
+  } else {
+    closeSidebar();
+  }
+}
+
+function initResponsiveSidebar() {
+  const btn = document.getElementById('btn-toggle-sidebar');
+  const overlay = document.getElementById('overlay');
+  if (btn) btn.addEventListener('click', toggleSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (window.innerWidth < 768) closeSidebar();
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 768) {
+      document.querySelector('aside').classList.remove('-translate-x-full');
+      document.getElementById('overlay').classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    } else {
+      closeSidebar();
+    }
+  });
+}
+
+const originalSwitchView = switchView;
+switchView = function(viewName) {
+  originalSwitchView(viewName);
+  if (window.innerWidth < 768) closeSidebar();
+};

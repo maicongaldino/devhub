@@ -17,10 +17,24 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body class="bg-gray-950 text-gray-300 font-sans overflow-x-hidden">
+    <header class="md:hidden fixed top-0 left-0 right-0 bg-gray-900 border-b border-gray-800 z-30">
+      <div class="flex items-center justify-between px-4 h-12">
+        <div class="flex items-center">
+          <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3">
+            <i class="fa-solid fa-code text-white text-sm"></i>
+          </div>
+          <span class="text-white font-bold">DevHub</span>
+        </div>
+        <button id="btn-toggle-sidebar" class="text-gray-200 px-3 py-1 rounded bg-gray-800 border border-gray-700">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </header>
+    <div id="overlay" class="hidden fixed inset-0 bg-black/50 z-20"></div>
     <div class="flex flex-col md:flex-row min-h-screen">
       <!-- SIDEBAR -->
       <aside
-        class="w-full md:w-72 bg-gray-900 border-r border-gray-800 md:fixed md:h-screen z-20 flex flex-col shadow-2xl"
+        class="w-72 bg-gray-900 border-r border-gray-800 fixed md:fixed md:h-screen h-screen z-30 flex flex-col shadow-2xl transform -translate-x-full md:translate-x-0 transition-transform duration-300"
       >
         <!-- Logo -->
         <div
@@ -108,7 +122,7 @@
       </aside>
 
       <!-- MAIN CONTENT -->
-      <main class="flex-1 md:ml-72 p-6 md:p-10 max-w-6xl mx-auto min-h-screen">
+      <main class="flex-1 md:ml-72 p-6 md:p-10 pt-14 md:pt-10 max-w-6xl mx-auto min-h-screen">
         <!-- VIEW: HOME -->
         <div id="view-home" class="fade-in">
           <div class="text-center py-10 md:py-20">
