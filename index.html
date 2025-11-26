@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevHub: Central de Estudos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <style>
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #111827;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #374151;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #4b5563;
+      }
+
+      .code-preview {
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      /* Estado ativo do menu principal (Módulos) */
+      .module-link.active {
+        background-color: #1f2937; /* gray-800 */
+        color: #fff;
+        border-left: 3px solid #6366f1; /* indigo-500 */
+      }
+
+      /* Títulos de Tópicos no Menu */
+      .topic-header {
+        font-size: 0.75rem; /* text-xs */
+        font-weight: 700;
+        color: #6b7280; /* gray-500 */
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+        padding-left: 0.75rem;
+      }
+
+      /* Links de Subtópicos */
+      .subtopic-link {
+        display: block;
+        padding: 0.4rem 0.75rem 0.4rem 1.5rem; /* Indentação maior */
+        font-size: 0.875rem; /* text-sm */
+        color: #9ca3af; /* gray-400 */
+        border-radius: 0.375rem;
+        transition: all 0.2s;
+        border-left: 2px solid transparent;
+      }
+      .subtopic-link:hover {
+        color: #fff;
+        background-color: rgba(31, 41, 55, 0.5);
+      }
+      .subtopic-link.active {
+        color: #818cf8; /* indigo-400 */
+        border-left-color: #818cf8;
+        background-color: rgba(31, 41, 55, 0.5);
+      }
+
+      .subtopic-link i {
+        opacity: 0.7;
+        margin-right: 0.5rem;
+        width: 16px;
+        text-align: center;
+      }
+
+      .hidden-section {
+        display: none;
+      }
+
+      /* Animação suave de entrada */
+      .fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Estilo dos Resultados da Busca */
+      #search-results {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .search-item {
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      .search-item:hover {
+        background-color: rgba(55, 65, 81, 0.5);
+      }
+
+      /* Estilo para sub-cabeçalhos de explicação/exemplo */
+      .sub-header-concept {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #818cf8; /* indigo-400 */
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+      }
+      .sub-header-example {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #34d399; /* emerald-400 */
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+        margin-top: 1.5rem;
+        display: flex;
+        align-items: center;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-950 text-gray-300 font-sans overflow-x-hidden">
+    <div class="flex flex-col md:flex-row min-h-screen">
+      <!-- SIDEBAR -->
+      <aside
+        class="w-full md:w-72 bg-gray-900 border-r border-gray-800 fixed md:h-screen z-20 flex flex-col shadow-2xl"
+      >
+        <!-- Logo -->
+        <div
+          class="p-6 border-b border-gray-800 flex items-center cursor-pointer hover:bg-gray-800/50 transition"
+          onclick="switchView('home')"
+        >
+          <div
+            class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-indigo-900/50"
+          >
+            <i class="fa-solid fa-code text-white text-sm"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-white tracking-tight">DevHub</h1>
+          </div>
+        </div>
+
+        <!-- BARRA DE PESQUISA -->
+        <div class="px-4 pt-4 pb-2">
+          <div class="relative">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Pesquisar (ex: pandas, git init)..."
+              class="w-full bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block pl-10 p-2.5 placeholder-gray-500"
+              onkeyup="handleSearch()"
+            />
+            <div
+              class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+            >
+              <i class="fa-solid fa-magnifying-glass text-gray-500"></i>
+            </div>
+          </div>
+          <div
+            id="search-results"
+            class="hidden mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl absolute w-[90%] z-50 left-1/2 transform -translate-x-1/2"
+          ></div>
+        </div>
+
+        <!-- Menu de Módulos -->
+        <div class="px-3 py-2 border-b border-gray-800">
+          <p
+            class="px-3 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-2"
+          >
+            Módulos
+          </p>
+          <button
+            onclick="switchView('home')"
+            id="btn-home"
+            class="module-link active w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all flex items-center mb-1"
+          >
+            <i class="fa-solid fa-house w-6 text-center mr-2"></i> Início
+          </button>
+          <button
+            onclick="switchView('python')"
+            id="btn-python"
+            class="module-link w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all flex items-center mb-1"
+          >
+            <i
+              class="fa-brands fa-python w-6 text-center mr-2 text-yellow-500"
+            ></i>
+            Python
+          </button>
+          <button
+            onclick="switchView('git')"
+            id="btn-git"
+            class="module-link w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all flex items-center mb-1"
+          >
+            <i
+              class="fa-brands fa-git-alt w-6 text-center mr-2 text-orange-500"
+            ></i>
+            Git
+          </button>
+        </div>
+
+        <nav
+          id="submenu-container"
+          class="flex-1 overflow-y-auto py-2 px-2 pb-10"
+        ></nav>
+
+        <div
+          class="p-4 border-t border-gray-800 text-xs text-center text-gray-600"
+        >
+          v1.0 • DevHub
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="flex-1 md:ml-72 p-6 md:p-10 max-w-6xl mx-auto min-h-screen">
+        <!-- VIEW: HOME -->
+        <div id="view-home" class="fade-in">
+          <div class="text-center py-10 md:py-20">
+            <h2 class="text-4xl md:text-5xl font-extrabold text-white mb-6">
+              O que vamos estudar hoje?
+            </h2>
+            <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+              Use a busca lateral ou selecione uma tecnologia abaixo para
+              acessar o guia.
+            </p>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <!-- Card Python -->
+            <div
+              onclick="switchView('python')"
+              class="group bg-gray-900 border border-gray-800 p-8 rounded-2xl cursor-pointer hover:border-yellow-500/50 hover:bg-gray-800/80 transition-all duration-300 relative overflow-hidden"
+            >
+              <div
+                class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+              >
+                <i class="fa-brands fa-python text-9xl"></i>
+              </div>
+              <div class="relative z-10">
+                <div
+                  class="w-12 h-12 bg-yellow-900/30 rounded-lg flex items-center justify-center mb-4 text-yellow-400 border border-yellow-500/20"
+                >
+                  <i class="fa-brands fa-python text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Python</h3>
+                <p class="text-gray-400 mb-4">
+                  Lógica, manipulação avançada com Pandas e gráficos com
+                  Seaborn.
+                </p>
+                <span
+                  class="text-yellow-400 text-sm font-semibold flex items-center"
+                  >Acessar Guia
+                  <i
+                    class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"
+                  ></i
+                ></span>
+              </div>
+            </div>
+
+            <!-- Card Git -->
+            <div
+              onclick="switchView('git')"
+              class="group bg-gray-900 border border-gray-800 p-8 rounded-2xl cursor-pointer hover:border-orange-500/50 hover:bg-gray-800/80 transition-all duration-300 relative overflow-hidden"
+            >
+              <div
+                class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+              >
+                <i class="fa-brands fa-git-alt text-9xl"></i>
+              </div>
+              <div class="relative z-10">
+                <div
+                  class="w-12 h-12 bg-orange-900/30 rounded-lg flex items-center justify-center mb-4 text-orange-400 border border-orange-500/20"
+                >
+                  <i class="fa-brands fa-git-alt text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Git</h3>
+                <p class="text-gray-400 mb-4">
+                  Entenda o init, add, commit e push detalhadamente.
+                </p>
+                <span
+                  class="text-orange-400 text-sm font-semibold flex items-center"
+                  >Acessar Guia
+                  <i
+                    class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"
+                  ></i
+                ></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW: PYTHON -->
+        <div id="view-python" class="hidden-section fade-in">
+          <!-- Header -->
+          <div class="flex items-center text-sm text-gray-500 mb-6">
+            <span
+              class="cursor-pointer hover:text-white"
+              onclick="switchView('home')"
+              >Home</span
+            >
+            <i class="fa-solid fa-chevron-right text-xs mx-2"></i>
+            <span class="text-yellow-500 font-semibold">Python</span>
+          </div>
+
+          <div class="border-b border-gray-800 pb-8 mb-10">
+            <h2 class="text-3xl font-bold text-white mb-2 flex items-center">
+              <i class="fa-brands fa-python text-yellow-500 mr-3"></i> Python
+              Fundamentos
+            </h2>
+            <p class="text-gray-400">
+              Referência explicada para scripts e análise de dados.
+            </p>
+          </div>
+
+          <!-- Conteúdo Python -->
+          <div class="space-y-16">
+            <!-- LÓGICA -->
+            <div id="grupo-logica">
+              <section
+                id="py-condicionais"
+                class="scroll-mt-24 mb-10"
+                data-title="Condicionais"
+              >
+                <div class="flex items-center mb-3">
+                  <code
+                    class="text-purple-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                    >if / else</code
+                  >
+                  <h3 class="text-lg font-bold text-gray-200">Condicionais</h3>
+                </div>
+
+                <div class="sub-header-concept">
+                  <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                </div>
+                <p class="text-gray-400 mb-4 leading-relaxed">
+                  O bloco <code>if</code> serve para fazer o código "tomar
+                  decisões". Ele avalia se uma condição é verdadeira. Se não
+                  for, ele tenta o <code>elif</code> (else if). Se nenhuma
+                  funcionar, ele executa o <code>else</code> como última opção.
+                  <br /><span class="text-sm text-gray-500 italic block mt-2"
+                    ><i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                    Atenção: A indentação (espaço antes da linha) é obrigatória
+                    no Python!</span
+                  >
+                </p>
+
+                <div class="sub-header-example">
+                  <i class="fa-solid fa-code mr-2"></i>Exemplo
+                </div>
+                <div
+                  class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden"
+                >
+                  <pre
+                    class="p-5 text-sm overflow-x-auto font-mono text-gray-300"
+                  ><code>idade = <span class="text-orange-400">18</span>
+<span class="text-purple-400">if</span> idade >= <span class="text-orange-400">18</span>:
+    <span class="text-blue-300">print</span>(<span class="text-green-400">"Maior"</span>) <span class="text-gray-500"># Executa se for verdade</span>
+<span class="text-purple-400">elif</span> idade >= <span class="text-orange-400">16</span>:
+    <span class="text-blue-300">print</span>(<span class="text-green-400">"Vota"</span>)  <span class="text-gray-500"># Executa se o primeiro if falhar</span>
+<span class="text-purple-400">else</span>:
+    <span class="text-blue-300">print</span>(<span class="text-green-400">"Menor"</span>) <span class="text-gray-500"># Se nada for verdade</span></code></pre>
+                </div>
+              </section>
+
+              <section
+                id="py-loops"
+                class="scroll-mt-24 mb-10"
+                data-title="Loops"
+              >
+                <div class="flex items-center mb-3">
+                  <code
+                    class="text-blue-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                    >for</code
+                  >
+                  <h3 class="text-lg font-bold text-gray-200">Repetições</h3>
+                </div>
+
+                <div class="sub-header-concept">
+                  <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                </div>
+                <p class="text-gray-400 mb-4 leading-relaxed">
+                  Use o <code>for</code> quando quiser repetir uma ação várias
+                  vezes ou percorrer uma lista inteira item por item.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <div class="sub-header-example">
+                      <i class="fa-solid fa-code mr-2"></i>Exemplo: Range
+                    </div>
+                    <div
+                      class="bg-[#0d1117] rounded-lg border border-gray-800 p-4 h-full"
+                    >
+                      <p class="text-xs text-gray-500 mb-2">
+                        Contador numérico. O último nº não conta.
+                      </p>
+                      <pre
+                        class="text-sm font-mono text-gray-300"
+                      ><code><span class="text-purple-400">for</span> i <span class="text-purple-400">in</span> <span class="text-blue-300">range</span>(<span class="text-orange-400">5</span>):
+    <span class="text-blue-300">print</span>(i) <span class="text-gray-500"># 0, 1, 2, 3, 4</span></code></pre>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="sub-header-example">
+                      <i class="fa-solid fa-code mr-2"></i>Exemplo: Lista
+                    </div>
+                    <div
+                      class="bg-[#0d1117] rounded-lg border border-gray-800 p-4 h-full"
+                    >
+                      <p class="text-xs text-gray-500 mb-2">
+                        Itera item por item.
+                      </p>
+                      <pre
+                        class="text-sm font-mono text-gray-300"
+                      ><code><span class="text-purple-400">for</span> item <span class="text-purple-400">in</span> lista:
+    <span class="text-blue-300">print</span>(item)</code></pre>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- LISTAS -->
+              <section
+                id="py-listas"
+                class="scroll-mt-24 mb-10"
+                data-title="Listas"
+              >
+                <div class="flex items-center mb-3">
+                  <code
+                    class="text-yellow-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                    >[ ]</code
+                  >
+                  <h3 class="text-xl font-bold text-gray-100">Listas</h3>
+                </div>
+
+                <!-- Bloco 1: Definição -->
+                <div class="mb-10 border-b border-gray-800 pb-8">
+                  <h4 class="text-lg font-semibold text-yellow-400 mb-4">
+                    <i class="fa-solid fa-layer-group mr-2 text-sm"></i
+                    >Estrutura Básica
+                  </h4>
+
+                  <div class="sub-header-concept">
+                    <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                  </div>
+                  <p class="text-gray-400 mb-3 leading-relaxed">
+                    São sequências ordenadas e mutáveis. Use colchetes
+                    <code>[]</code>. O índice do primeiro item é sempre 0.
+                  </p>
+
+                  <div class="sub-header-example">
+                    <i class="fa-solid fa-code mr-2"></i>Exemplo
+                  </div>
+                  <div
+                    class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden"
+                  >
+                    <pre
+                      class="p-4 text-sm font-mono text-gray-300"
+                    ><code>frutas = [<span class="text-green-400">"Maçã"</span>, <span class="text-green-400">"Banana"</span>, <span class="text-green-400">"Uva"</span>]
+
+<span class="text-gray-500"># Acessando (Lendo)</span>
+<span class="text-blue-300">print</span>(frutas[<span class="text-orange-400">0</span>])  <span class="text-gray-500"># "Maçã"</span>
+<span class="text-blue-300">print</span>(frutas[-<span class="text-orange-400">1</span>]) <span class="text-gray-500"># "Uva" (último)</span></code></pre>
+                  </div>
+                </div>
+
+                <!-- Bloco 2: Operações -->
+                <div class="mb-10 border-b border-gray-800 pb-8">
+                  <h4 class="text-lg font-semibold text-yellow-400 mb-4">
+                    <i class="fa-solid fa-toolbox mr-2 text-sm"></i>Manipulação
+                  </h4>
+
+                  <div class="sub-header-concept">
+                    <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                  </div>
+                  <p class="text-gray-400 mb-3 leading-relaxed">
+                    Como adicionar, remover e buscar itens dentro da lista.
+                  </p>
+
+                  <div class="sub-header-example">
+                    <i class="fa-solid fa-code mr-2"></i>Exemplo
+                  </div>
+                  <div
+                    class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden"
+                  >
+                    <pre
+                      class="p-4 text-sm font-mono text-gray-300"
+                    ><code>lista = [<span class="text-green-400">"A"</span>, <span class="text-green-400">"B"</span>, <span class="text-green-400">"C"</span>]
+
+<span class="text-gray-500"># ADICIONAR</span>
+lista.append(<span class="text-green-400">"D"</span>)      <span class="text-gray-500"># No final: ["A", "B", "C", "D"]</span>
+lista.insert(<span class="text-orange-400">0</span>, <span class="text-green-400">"Z"</span>)   <span class="text-gray-500"># No início (índice 0): ["Z", "A"...]</span>
+
+<span class="text-gray-500"># REMOVER</span>
+lista.remove(<span class="text-green-400">"B"</span>)      <span class="text-gray-500"># Remove pelo VALOR (o primeiro que achar)</span>
+item = lista.pop(<span class="text-orange-400">2</span>)    <span class="text-gray-500"># Remove pelo ÍNDICE e retorna o valor</span>
+
+<span class="text-gray-500"># BUSCAR / VERIFICAR</span>
+<span class="text-purple-400">if</span> <span class="text-green-400">"A"</span> <span class="text-purple-400">in</span> lista:
+    <span class="text-blue-300">print</span>(<span class="text-green-400">"A letra A está na lista!"</span>)
+
+<span class="text-gray-500"># TAMANHO</span>
+<span class="text-blue-300">print</span>(<span class="text-blue-300">len</span>(lista))      <span class="text-gray-500"># Conta quantos itens tem</span></code></pre>
+                  </div>
+                </div>
+
+                <!-- Bloco 3: Slicing -->
+                <div>
+                  <h4 class="text-lg font-semibold text-yellow-400 mb-4">
+                    <i class="fa-solid fa-pizza-slice mr-2 text-sm"></i
+                    >Fatiamento (Slicing)
+                  </h4>
+
+                  <div class="sub-header-concept">
+                    <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                  </div>
+                  <p class="text-gray-400 mb-3 leading-relaxed">
+                    Recurso poderoso para pegar "pedaços" da lista. A sintaxe é
+                    <code>[início : fim]</code>. <br /><span
+                      class="text-gray-500 italic"
+                      >Regra de ouro: O índice do final NÃO é incluído no
+                      resultado.</span
+                    >
+                  </p>
+
+                  <div class="sub-header-example">
+                    <i class="fa-solid fa-code mr-2"></i>Exemplo
+                  </div>
+                  <div
+                    class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden"
+                  >
+                    <pre
+                      class="p-4 text-sm font-mono text-gray-300"
+                    ><code>nums = [<span class="text-orange-400">0</span>, <span class="text-orange-400">10</span>, <span class="text-orange-400">20</span>, <span class="text-orange-400">30</span>, <span class="text-orange-400">40</span>]
+
+<span class="text-gray-500"># Do índice 1 até o 3 (o 3 fica de fora)</span>
+<span class="text-blue-300">print</span>(nums[<span class="text-orange-400">1</span>:<span class="text-orange-400">3</span>]) <span class="text-gray-500"># Saída: [10, 20]</span>
+
+<span class="text-gray-500"># Do começo até o 2</span>
+<span class="text-blue-300">print</span>(nums[:<span class="text-orange-400">2</span>])    <span class="text-gray-500"># Saída: [0, 10]</span>
+
+<span class="text-gray-500"># Do 2 até o final</span>
+<span class="text-blue-300">print</span>(nums[<span class="text-orange-400">2</span>:])    <span class="text-gray-500"># Saída: [20, 30, 40]</span></code></pre>
+                  </div>
+                </div>
+              </section>
+
+              <!-- DICIONÁRIOS -->
+              <section
+                id="py-dicts"
+                class="scroll-mt-24"
+                data-title="Dicionários"
+              >
+                <div class="flex items-center mb-3">
+                  <code
+                    class="text-orange-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                    >{ }</code
+                  >
+                  <h3 class="text-xl font-bold text-gray-100">Dicionários</h3>
+                </div>
+
+                <!-- Bloco 1: Definição -->
+                <div class="mb-10 border-b border-gray-800 pb-8">
+                  <h4 class="text-lg font-semibold text-orange-400 mb-4">
+                    <i class="fa-solid fa-book mr-2 text-sm"></i>Estrutura
+                    Básica
+                  </h4>
+
+                  <div class="sub-header-concept">
+                    <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                  </div>
+                  <p class="text-gray-400 mb-3 leading-relaxed">
+                    Chave e Valor. Use chaves <code>{}</code>.
+                  </p>
+
+                  <div class="sub-header-example">
+                    <i class="fa-solid fa-code mr-2"></i>Exemplo
+                  </div>
+                  <div
+                    class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden"
+                  >
+                    <pre
+                      class="p-4 text-sm font-mono text-gray-300"
+                    ><code>user = {<span class="text-green-400">"nome"</span>: <span class="text-green-400">"Ana"</span>, <span class="text-green-400">"nota"</span>: <span class="text-orange-400">8.5</span>}
+
+<span class="text-gray-500"># Acessar</span>
+<span class="text-blue-300">print</span>(user[<span class="text-green-400">"nome"</span>])  <span class="text-gray-500"># Saída: Ana</span></code></pre>
+                  </div>
+                </div>
+
+                <!-- Bloco 2: Operações -->
+                <div>
+                  <h4 class="text-lg font-semibold text-orange-400 mb-4">
+                    <i class="fa-solid fa-toolbox mr-2 text-sm"></i>Manipulação
+                  </h4>
+
+                  <div class="sub-header-concept">
+                    <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                  </div>
+                  <p class="text-gray-400 mb-3">
+                    Adicionar, remover chaves e buscar valores de forma segura.
+                  </p>
+
+                  <div class="sub-header-example">
+                    <i class="fa-solid fa-code mr-2"></i>Exemplo
+                  </div>
+                  <div
+                    class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden"
+                  >
+                    <pre
+                      class="p-4 text-sm font-mono text-gray-300"
+                    ><code>aluno = {<span class="text-green-400">"nome"</span>: <span class="text-green-400">"Leo"</span>}
+
+<span class="text-gray-500"># ADICIONAR / ALTERAR</span>
+aluno[<span class="text-green-400">"curso"</span>] = <span class="text-green-400">"Python"</span>  <span class="text-gray-500"># Cria nova chave "curso"</span>
+aluno[<span class="text-green-400">"nome"</span>] = <span class="text-green-400">"Leonardo"</span> <span class="text-gray-500"># Se já existe, atualiza o valor</span>
+
+<span class="text-gray-500"># REMOVER</span>
+<span class="text-purple-400">del</span> aluno[<span class="text-green-400">"curso"</span>]       <span class="text-gray-500"># Remove a chave "curso" pra sempre</span>
+nota = aluno.pop(<span class="text-green-400">"nota"</span>, <span class="text-purple-400">None</span>) <span class="text-gray-500"># Remove e retorna valor (sem erro se não existir)</span>
+
+<span class="text-gray-500"># BUSCAR SEGURA (Evita erro se chave não existe)</span>
+<span class="text-blue-300">print</span>(aluno.get(<span class="text-green-400">"idade"</span>, <span class="text-green-400">"Não informado"</span>)) 
+
+<span class="text-gray-500"># VERIFICAR CHAVE</span>
+<span class="text-purple-400">if</span> <span class="text-green-400">"nome"</span> <span class="text-purple-400">in</span> aluno:
+    <span class="text-blue-300">print</span>(<span class="text-green-400">"Existe a chave nome"</span>)</code></pre>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <!-- PANDAS -->
+            <div id="grupo-pandas" class="pt-10 border-t border-gray-800">
+              <div class="flex items-center mb-6">
+                <i class="fa-solid fa-table text-purple-400 text-2xl mr-3"></i>
+                <h2 class="text-2xl font-bold text-white">
+                  Pandas (Análise de Dados)
+                </h2>
+              </div>
+              <p class="text-gray-400 mb-8 leading-relaxed">
+                O Pandas é a biblioteca padrão para manipular tabelas
+                (DataFrames). Ele é infinitamente mais rápido que o Excel para
+                grandes volumes de dados.
+              </p>
+
+              <!-- Leitura -->
+              <section
+                id="pd-leitura"
+                class="scroll-mt-24 mb-10"
+                data-title="Pandas: Leitura"
+              >
+                <div class="flex items-center mb-3">
+                  <code
+                    class="text-purple-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                    >pd.read_csv</code
+                  >
+                  <h3 class="text-lg font-bold text-gray-200">
+                    Leitura de Arquivos
+                  </h3>
+                </div>
+
+                <div class="sub-header-concept">
+                  <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                </div>
+                <p class="text-gray-400 mb-3 text-sm">
+                  Antes de analisar, precisamos carregar o arquivo e entender a
+                  estrutura dos dados (quais colunas existem, se tem valores
+                  vazios, etc).
+                </p>
+
+                <div class="sub-header-example">
+                  <i class="fa-solid fa-code mr-2"></i>Exemplo
+                </div>
+                <div
+                  class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden"
+                >
+                  <pre
+                    class="p-5 text-sm overflow-x-auto font-mono text-gray-300"
+                  ><code><span class="text-purple-400">import</span> pandas <span class="text-purple-400">as</span> pd
+
+<span class="text-gray-500"># Lendo o arquivo CSV para a memória (Assumindo que o arquivo existe)</span>
+df = pd.read_csv(<span class="text-green-400">'vendas.csv'</span>)
+
+<span class="text-gray-500"># Visualização inicial</span>
+df.head()       <span class="text-gray-500"># Mostra as 5 primeiras linhas (padrão)</span>
+df.head(<span class="text-orange-400">10</span>)     <span class="text-gray-500"># Mostra as 10 primeiras linhas</span>
+df.info()       <span class="text-gray-500"># Mostra resumo técnico (tipos de dados e contagem de não-nulos)</span>
+df.describe()   <span class="text-gray-500"># Gera estatísticas automáticas (Média, Mínimo, Máximo)</span></code></pre>
+                </div>
+              </section>
+
+              <!-- Seleção e Filtros -->
+              <section
+                id="pd-filtros"
+                class="scroll-mt-24 mb-10"
+                data-title="Pandas: Filtros"
+              >
+                <div class="flex items-center mb-3">
+                  <code
+                    class="text-purple-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                    >df[ ]</code
+                  >
+                  <h3 class="text-lg font-bold text-gray-200">
+                    Seleção e Filtros
+                  </h3>
+                </div>
+
+                <div class="sub-header-concept">
+                  <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                </div>
+                <p class="text-gray-400 mb-3 text-sm">
+                  Raramente usamos a tabela inteira. Na maioria das vezes,
+                  queremos filtrar linhas específicas (ex: apenas vendas caras)
+                  ou selecionar colunas de interesse.
+                </p>
+
+                <div class="sub-header-example">
+                  <i class="fa-solid fa-code mr-2"></i>Exemplo
+                </div>
+                <div
+                  class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden"
+                >
+                  <pre
+                    class="p-5 text-sm overflow-x-auto font-mono text-gray-300"
+                  ><code><span class="text-purple-400">import</span> pandas <span class="text-purple-400">as</span> pd
+
+<span class="text-gray-500"># Criando dados de exemplo para funcionar</span>
+data = {
+    <span class="text-green-400">'produto'</span>: [<span class="text-green-400">'Mouse'</span>, <span class="text-green-400">'Teclado'</span>, <span class="text-green-400">'Monitor'</span>, <span class="text-green-400">'Laptop'</span>],
+    <span class="text-green-400">'preco'</span>: [<span class="text-orange-400">50</span>, <span class="text-orange-400">80</span>, <span class="text-orange-400">450</span>, <span class="text-orange-400">2500</span>],
+    <span class="text-green-400">'categoria'</span>: [<span class="text-green-400">'Acessórios'</span>, <span class="text-green-400">'Acessórios'</span>, <span class="text-green-400">'Periféricos'</span>, <span class="text-green-400">'Eletrônicos'</span>]
+}
+
+<span class="text-gray-500"># pd.DataFrame(): Converte o dicionário acima em uma Tabela estruturada</span>
+df = pd.DataFrame(data)
+
+<span class="text-gray-500"># Selecionar apenas uma coluna (retorna uma Série de dados)</span>
+precos = df[<span class="text-green-400">'preco'</span>]
+
+<span class="text-gray-500"># Selecionar várias colunas (retorna um novo DataFrame menor)</span>
+resumo = df[[<span class="text-green-400">'produto'</span>, <span class="text-green-400">'preco'</span>]]
+
+<span class="text-gray-500"># FILTRAR LINHAS: Apenas onde o preço for maior que 100</span>
+vendas_caras = df[df[<span class="text-green-400">'preco'</span>] > <span class="text-orange-400">100</span>]
+
+<span class="text-gray-500"># FILTRO DUPLO (AND): Acima de 100 E da categoria Eletrônicos</span>
+filtro = (df[<span class="text-green-400">'preco'</span>] > <span class="text-orange-400">100</span>) & (df[<span class="text-green-400">'categoria'</span>] == <span class="text-green-400">'Eletrônicos'</span>)
+resultado = df[filtro]</code></pre>
+                </div>
+              </section>
+
+              <!-- Limpeza e Tratamento -->
+              <section
+                id="pd-limpeza"
+                class="scroll-mt-24 mb-10"
+                data-title="Pandas: Limpeza"
+              >
+                <div class="flex items-center mb-3">
+                  <code
+                    class="text-purple-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                    >df.dropna</code
+                  >
+                  <h3 class="text-lg font-bold text-gray-200">
+                    Limpeza de Dados
+                  </h3>
+                </div>
+
+                <div class="sub-header-concept">
+                  <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                </div>
+                <p class="text-gray-400 mb-3 text-sm">
+                  Dados do mundo real vêm sujos (com buracos/NaN). O Pandas
+                  facilita a limpeza e também a criação de novas colunas
+                  baseadas em cálculos.
+                </p>
+
+                <div class="sub-header-example">
+                  <i class="fa-solid fa-code mr-2"></i>Exemplo
+                </div>
+                <div
+                  class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden"
+                >
+                  <pre
+                    class="p-5 text-sm overflow-x-auto font-mono text-gray-300"
+                  ><code><span class="text-purple-400">import</span> pandas <span class="text-purple-400">as</span> pd
+
+<span class="text-gray-500"># Criando dados com valores nulos (None) para teste</span>
+data = {
+    <span class="text-green-400">'produto'</span>: [<span class="text-green-400">'Mouse'</span>, <span class="text-green-400">'Teclado'</span>, <span class="text-purple-400">None</span>],
+    <span class="text-green-400">'preco'</span>: [<span class="text-orange-400">50</span>, <span class="text-purple-400">None</span>, <span class="text-orange-400">450</span>]
+}
+
+<span class="text-gray-500"># Transforma o dicionário em Tabela (DataFrame)</span>
+df = pd.DataFrame(data)
+
+<span class="text-gray-500"># Opção A: Apagar linhas que tenham QUALQUER valor vazio (NaN)</span>
+df_limpo = df.dropna()
+
+<span class="text-gray-500"># Opção B: Preencher os buracos vazios com zero (ou média)</span>
+df_preenchido = df.fillna(<span class="text-orange-400">0</span>)
+
+<span class="text-gray-500"># Criar uma NOVA coluna calculada (ex: dobrar o preço)</span>
+# Nota: Com fillna(0), o cálculo funcionará sem erros
+df_preenchido[<span class="text-green-400">'preco_dobro'</span>] = df_preenchido[<span class="text-green-400">'preco'</span>] * <span class="text-orange-400">2</span></code></pre>
+                </div>
+              </section>
+            </div>
+
+            <!-- GRÁFICOS -->
+            <div id="grupo-graficos" class="pt-10 border-t border-gray-800">
+              <div class="flex items-center mb-6">
+                <i class="fa-solid fa-chart-pie text-red-400 text-2xl mr-3"></i>
+                <h2 class="text-2xl font-bold text-white">
+                  Visualização de Dados
+                </h2>
+              </div>
+              <p class="text-gray-400 mb-8 leading-relaxed">
+                Números em tabelas são difíceis de ler. Gráficos revelam padrões
+                instantaneamente.
+              </p>
+
+              <!-- Matplotlib -->
+              <section
+                id="viz-matplotlib"
+                class="scroll-mt-24 mb-10"
+                data-title="Matplotlib"
+              >
+                <div class="flex items-center mb-3">
+                  <code
+                    class="text-red-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                    >plt.plot</code
+                  >
+                  <h3 class="text-lg font-bold text-gray-200">Gráficos Base</h3>
+                </div>
+
+                <div class="sub-header-concept">
+                  <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                </div>
+                <p class="text-gray-400 mb-3 text-sm">
+                  É a biblioteca "pai". Permite customizar cada pixel do
+                  gráfico, mas exige mais linhas de código.
+                </p>
+
+                <div class="sub-header-example">
+                  <i class="fa-solid fa-code mr-2"></i>Exemplo
+                </div>
+                <div
+                  class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden mb-4"
+                >
+                  <div
+                    class="bg-gray-800 px-4 py-1 text-xs text-gray-400 border-b border-gray-700"
+                  >
+                    Gráfico de Linha e Barras
+                  </div>
+                  <pre
+                    class="p-5 text-sm overflow-x-auto font-mono text-gray-300"
+                  ><code><span class="text-purple-400">import</span> matplotlib.pyplot <span class="text-purple-400">as</span> plt
+
+meses = [<span class="text-green-400">'Jan'</span>, <span class="text-green-400">'Fev'</span>, <span class="text-green-400">'Mar'</span>]
+vendas = [<span class="text-orange-400">100</span>, <span class="text-orange-400">150</span>, <span class="text-orange-400">130</span>]
+
+<span class="text-gray-500"># 1. Gráfico de Linha</span>
+plt.plot(meses, vendas, color=<span class="text-green-400">'blue'</span>, marker=<span class="text-green-400">'o'</span>)
+plt.title(<span class="text-green-400">"Vendas Trimestrais"</span>)
+plt.xlabel(<span class="text-green-400">"Mês"</span>)
+plt.ylabel(<span class="text-green-400">"Valor"</span>)
+plt.grid(<span class="text-purple-400">True</span>) <span class="text-gray-500"># Adiciona uma grade de fundo para facilitar leitura</span>
+plt.show()       <span class="text-gray-500"># Exibe a janela do gráfico</span>
+
+<span class="text-gray-500"># 2. Gráfico de Barras</span>
+plt.bar(meses, vendas, color=<span class="text-green-400">'orange'</span>)
+plt.show()</code></pre>
+                </div>
+              </section>
+
+              <!-- Seaborn -->
+              <section
+                id="viz-seaborn"
+                class="scroll-mt-24 mb-10"
+                data-title="Seaborn"
+              >
+                <div class="flex items-center mb-3">
+                  <code
+                    class="text-red-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                    >sns.scatterplot</code
+                  >
+                  <h3 class="text-lg font-bold text-gray-200">
+                    Gráficos Estatísticos
+                  </h3>
+                </div>
+
+                <div class="sub-header-concept">
+                  <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                </div>
+                <p class="text-gray-400 mb-3 text-sm">
+                  Construído em cima do Matplotlib. Ele entende o DataFrame do
+                  Pandas diretamente e cria gráficos complexos e bonitos com
+                  apenas 1 linha.
+                </p>
+
+                <div class="sub-header-example">
+                  <i class="fa-solid fa-code mr-2"></i>Exemplo
+                </div>
+                <div
+                  class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden"
+                >
+                  <pre
+                    class="p-5 text-sm overflow-x-auto font-mono text-gray-300"
+                  ><code><span class="text-purple-400">import</span> seaborn <span class="text-purple-400">as</span> sns
+<span class="text-purple-400">import</span> matplotlib.pyplot <span class="text-purple-400">as</span> plt
+<span class="text-purple-400">import</span> pandas <span class="text-purple-400">as</span> pd
+
+<span class="text-gray-500"># Criando dados de exemplo</span>
+data = {
+    <span class="text-green-400">'idade'</span>: [<span class="text-orange-400">25</span>, <span class="text-orange-400">30</span>, <span class="text-orange-400">35</span>, <span class="text-orange-400">40</span>, <span class="text-orange-400">45</span>],
+    <span class="text-green-400">'salario'</span>: [<span class="text-orange-400">3000</span>, <span class="text-orange-400">4500</span>, <span class="text-orange-400">5500</span>, <span class="text-orange-400">7000</span>, <span class="text-orange-400">8500</span>],
+    <span class="text-green-400">'genero'</span>: [<span class="text-green-400">'F'</span>, <span class="text-green-400">'M'</span>, <span class="text-green-400">'F'</span>, <span class="text-green-400">'M'</span>, <span class="text-green-400">'F'</span>],
+    <span class="text-green-400">'cargo'</span>: [<span class="text-green-400">'Jr'</span>, <span class="text-green-400">'Pleno'</span>, <span class="text-green-400">'Pleno'</span>, <span class="text-green-400">'Senior'</span>, <span class="text-green-400">'Senior'</span>]
+}
+
+<span class="text-gray-500"># pd.DataFrame(): Converte o dicionário em um DataFrame (Tabela)</span>
+df = pd.DataFrame(data)
+
+<span class="text-gray-500"># Dispersão (Scatterplot) - Ótimo para ver correlação (ex: idade x salário)</span>
+sns.scatterplot(data=df, x=<span class="text-green-400">'idade'</span>, y=<span class="text-green-400">'salario'</span>, hue=<span class="text-green-400">'genero'</span>)
+<span class="text-gray-500"># hue='genero': Pinta as bolinhas automaticamente baseado no gênero!</span>
+plt.show()
+
+<span class="text-gray-500"># Histograma - Para ver a distribuição dos dados (onde se concentram)</span>
+sns.histplot(data=df, x=<span class="text-green-400">'idade'</span>, kde=<span class="text-purple-400">True</span>)
+<span class="text-gray-500"># kde=True: Desenha a linha de curva suave por cima das barras</span>
+plt.show()
+
+<span class="text-gray-500"># Boxplot - Essencial para achar Outliers (valores absurdos/erros)</span>
+sns.boxplot(data=df, x=<span class="text-green-400">'cargo'</span>, y=<span class="text-green-400">'salario'</span>)
+plt.show()</code></pre>
+                </div>
+              </section>
+
+              <!-- Nova Seção: Integração Seaborn + Matplotlib -->
+              <section
+                id="viz-integracao"
+                class="scroll-mt-24 mb-10"
+                data-title="Integração Gráfica"
+              >
+                <div class="flex items-center mb-3">
+                  <code
+                    class="text-indigo-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                    >Seaborn + Matplotlib</code
+                  >
+                  <h3 class="text-lg font-bold text-gray-200">Integração</h3>
+                </div>
+
+                <div class="sub-header-concept">
+                  <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+                </div>
+                <p class="text-gray-400 mb-3 text-sm">
+                  O Seaborn é construído <strong>sobre</strong> o Matplotlib.
+                  Isso significa que eles não são concorrentes, mas parceiros!
+                  Você usa o Seaborn para criar o gráfico complexo facilmente e
+                  o Matplotlib para ajustar os detalhes finais (títulos, eixos,
+                  tamanho).
+                </p>
+
+                <div class="sub-header-example">
+                  <i class="fa-solid fa-code mr-2"></i>Exemplo
+                </div>
+                <div
+                  class="bg-[#0d1117] rounded-lg border border-gray-800 overflow-hidden"
+                >
+                  <div
+                    class="bg-gray-800 px-4 py-1 text-xs text-gray-400 border-b border-gray-700"
+                  >
+                    Exemplo de Trabalho em Equipe
+                  </div>
+                  <pre
+                    class="p-5 text-sm overflow-x-auto font-mono text-gray-300"
+                  ><code><span class="text-purple-400">import</span> seaborn <span class="text-purple-400">as</span> sns
+<span class="text-purple-400">import</span> matplotlib.pyplot <span class="text-purple-400">as</span> plt
+<span class="text-purple-400">import</span> pandas <span class="text-purple-400">as</span> pd
+
+<span class="text-gray-500"># Criando dados de exemplo</span>
+data = {
+    <span class="text-green-400">'idade'</span>: [<span class="text-orange-400">25</span>, <span class="text-orange-400">30</span>, <span class="text-orange-400">35</span>, <span class="text-orange-400">40</span>, <span class="text-orange-400">45</span>],
+    <span class="text-green-400">'salario'</span>: [<span class="text-orange-400">3000</span>, <span class="text-orange-400">4500</span>, <span class="text-orange-400">5500</span>, <span class="text-orange-400">7000</span>, <span class="text-orange-400">8500</span>],
+    <span class="text-green-400">'genero'</span>: [<span class="text-green-400">'F'</span>, <span class="text-green-400">'M'</span>, <span class="text-green-400">'F'</span>, <span class="text-green-400">'M'</span>, <span class="text-green-400">'F'</span>]
+}
+
+<span class="text-gray-500"># Converte o dicionário em DataFrame</span>
+df = pd.DataFrame(data)
+
+<span class="text-gray-500"># 1. SEABORN: Cria o gráfico bonito e estatístico</span>
+sns.scatterplot(data=df, x=<span class="text-green-400">'idade'</span>, y=<span class="text-green-400">'salario'</span>, hue=<span class="text-green-400">'genero'</span>)
+
+<span class="text-gray-500"># 2. MATPLOTLIB: Personaliza os detalhes</span>
+plt.title(<span class="text-green-400">"Relação Idade vs Salário por Gênero"</span>) <span class="text-gray-500"># Título</span>
+plt.xlabel(<span class="text-green-400">"Idade do Funcionário"</span>)               <span class="text-gray-500"># Rótulo X</span>
+plt.ylabel(<span class="text-green-400">"Salário Anual ($)"</span>)                  <span class="text-gray-500"># Rótulo Y</span>
+plt.grid(<span class="text-purple-400">True</span>, linestyle=<span class="text-green-400">'--'</span>)                   <span class="text-gray-500"># Grade tracejada</span>
+plt.show()</code></pre>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW: GIT -->
+        <div id="view-git" class="hidden-section fade-in">
+          <!-- Header -->
+          <div class="flex items-center text-sm text-gray-500 mb-6">
+            <span
+              class="cursor-pointer hover:text-white"
+              onclick="switchView('home')"
+              >Home</span
+            >
+            <i class="fa-solid fa-chevron-right text-xs mx-2"></i>
+            <span class="text-orange-500 font-semibold">Git</span>
+          </div>
+
+          <div class="border-b border-gray-800 pb-8 mb-10">
+            <h2 class="text-3xl font-bold text-white mb-2 flex items-center">
+              <i class="fa-brands fa-git-alt text-orange-500 mr-3"></i> Comandos
+              do Git
+            </h2>
+            <p class="text-gray-400">
+              Entenda o que cada comando faz no seu computador (localmente).
+            </p>
+          </div>
+
+          <div class="grid gap-8">
+            <!-- git init -->
+            <section id="git-init" class="scroll-mt-24" data-title="Git Init">
+              <div class="flex items-center mb-3">
+                <code
+                  class="text-orange-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                  >git init</code
+                >
+                <h3 class="text-lg font-bold text-gray-200">Criando do Zero</h3>
+              </div>
+
+              <div class="sub-header-concept">
+                <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+              </div>
+              <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                Este comando transforma uma pasta comum do seu computador em um
+                repositório Git. Ao rodar isso, o Git cria uma pasta oculta
+                chamada <code>.git</code> onde ele vai guardar todo o histórico
+                de alterações.
+              </p>
+
+              <div class="sub-header-example">
+                <i class="fa-solid fa-code mr-2"></i>Exemplo
+              </div>
+              <div
+                class="bg-[#0d1117] p-4 rounded-lg border border-gray-800 font-mono text-sm"
+              >
+                <div class="text-gray-500 mb-2">
+                  # 1. Entre na pasta do seu projeto
+                </div>
+                <div class="text-gray-300">cd meus-projetos/meu-site</div>
+                <div class="text-gray-500 mt-4 mb-2"># 2. Inicie o Git</div>
+                <div class="text-orange-400">git init</div>
+                <div class="text-green-400 mt-2">
+                  Initialized empty Git repository in .../.git/
+                </div>
+              </div>
+            </section>
+
+            <!-- git add -->
+            <section
+              id="git-add"
+              class="scroll-mt-24 border-t border-gray-800 pt-8"
+              data-title="Git Add"
+            >
+              <div class="flex items-center mb-3">
+                <code
+                  class="text-yellow-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                  >git add</code
+                >
+                <h3 class="text-lg font-bold text-gray-200">
+                  Preparando (Staging)
+                </h3>
+              </div>
+
+              <div class="sub-header-concept">
+                <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+              </div>
+              <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                O Git não salva automaticamente quando você edita um arquivo.
+                Você precisa avisar quais arquivos quer incluir no próximo
+                "save". O <code>add</code> coloca o arquivo na
+                <strong>Área de Preparação (Staging Area)</strong>. É como
+                colocar produtos no carrinho de compras antes de pagar.
+              </p>
+
+              <div class="sub-header-example">
+                <i class="fa-solid fa-code mr-2"></i>Exemplo
+              </div>
+              <div
+                class="bg-[#0d1117] p-4 rounded-lg border border-gray-800 font-mono text-sm"
+              >
+                <div class="text-gray-500 mb-2">
+                  # Adicionar um arquivo específico
+                </div>
+                <div class="text-yellow-400">git add index.html</div>
+                <div class="text-gray-500 mt-4 mb-2">
+                  # OU adicionar TODOS os arquivos modificados (mais comum)
+                </div>
+                <div class="text-yellow-400">git add .</div>
+              </div>
+            </section>
+
+            <!-- git commit -->
+            <section
+              id="git-commit"
+              class="scroll-mt-24 border-t border-gray-800 pt-8"
+              data-title="Git Commit"
+            >
+              <div class="flex items-center mb-3">
+                <code
+                  class="text-blue-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                  >git commit</code
+                >
+                <h3 class="text-lg font-bold text-gray-200">
+                  Salvando (Histórico)
+                </h3>
+              </div>
+
+              <div class="sub-header-concept">
+                <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+              </div>
+              <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                Este é o comando que efetivamente <strong>salva</strong> uma
+                versão no histórico. Ele pega tudo que estava no "carrinho"
+                (Stage) e cria um pacote fechado com uma mensagem sua.
+              </p>
+
+              <div class="sub-header-example">
+                <i class="fa-solid fa-code mr-2"></i>Exemplo
+              </div>
+              <div
+                class="bg-[#0d1117] p-4 rounded-lg border border-gray-800 font-mono text-sm"
+              >
+                <div class="text-gray-500 mb-2">
+                  # A flag "-m" serve para escrever a mensagem direto
+                </div>
+                <div class="text-blue-400">
+                  git commit -m "Cria a página inicial do site"
+                </div>
+                <div class="text-gray-400 mt-2 italic text-xs">
+                  [master (root-commit) 3d1f4a] Cria a página inicial do site<br />
+                  1 file changed, 10 insertions(+)
+                </div>
+              </div>
+            </section>
+
+            <!-- git push -->
+            <section
+              id="git-push"
+              class="scroll-mt-24 border-t border-gray-800 pt-8"
+              data-title="Git Push"
+            >
+              <div class="flex items-center mb-3">
+                <code
+                  class="text-purple-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                  >git push</code
+                >
+                <h3 class="text-lg font-bold text-gray-200">
+                  Enviando (Upload)
+                </h3>
+              </div>
+
+              <div class="sub-header-concept">
+                <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+              </div>
+              <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                Até agora, tudo aconteceu
+                <strong>apenas no seu computador</strong>. Se o seu PC quebrar,
+                você perde tudo. O <code>push</code> pega os seus commits locais
+                e envia para um servidor remoto (como GitHub, GitLab ou um
+                servidor da empresa).
+              </p>
+
+              <div class="sub-header-example">
+                <i class="fa-solid fa-code mr-2"></i>Exemplo
+              </div>
+              <div
+                class="bg-[#0d1117] p-4 rounded-lg border border-gray-800 font-mono text-sm"
+              >
+                <div class="text-gray-500 mb-2">
+                  # "origin" é o apelido do servidor remoto
+                </div>
+                <div class="text-gray-500 mb-2">
+                  # "main" (ou master) é o nome da branch principal
+                </div>
+                <div class="text-purple-400">git push origin main</div>
+              </div>
+            </section>
+
+            <!-- git pull -->
+            <section
+              id="git-pull"
+              class="scroll-mt-24 border-t border-gray-800 pt-8"
+              data-title="Git Pull"
+            >
+              <div class="flex items-center mb-3">
+                <code
+                  class="text-pink-400 font-bold text-xl mr-3 bg-gray-800 px-3 py-1 rounded"
+                  >git pull</code
+                >
+                <h3 class="text-lg font-bold text-gray-200">
+                  Atualizando (Download)
+                </h3>
+              </div>
+
+              <div class="sub-header-concept">
+                <i class="fa-solid fa-circle-info mr-2"></i>Explicação
+              </div>
+              <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                Se você trabalha em equipe (ou em computadores diferentes), o
+                código na nuvem pode mudar. O <code>pull</code> baixa as
+                atualizações do servidor e as mistura (merge) com o seu código
+                local automaticamente.
+              </p>
+
+              <div class="sub-header-example">
+                <i class="fa-solid fa-code mr-2"></i>Exemplo
+              </div>
+              <div
+                class="bg-[#0d1117] p-4 rounded-lg border border-gray-800 font-mono text-sm"
+              >
+                <div class="text-gray-500 mb-2">
+                  # Sempre faça um pull antes de começar a trabalhar!
+                </div>
+                <div class="text-pink-400">git pull origin main</div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div
+      id="toast"
+      class="fixed bottom-8 right-8 bg-indigo-600 text-white px-6 py-3 rounded-lg shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 border border-indigo-400 flex items-center z-50"
+    >
+      <i class="fa-solid fa-check-circle mr-2 text-lg"></i>
+      <span class="font-medium">Código copiado!</span>
+    </div>
+
+    <script>
+      // Dados dos submenus para cada módulo (Agora com SUBTÓPICOS)
+      const submenus = {
+        home: "",
+        python: `
+                <div class="topic-header">Lógica Básica</div>
+                <a href="#py-condicionais" class="subtopic-link"><i class="fa-solid fa-code-branch"></i> Condicionais</a>
+                <a href="#py-loops" class="subtopic-link"><i class="fa-solid fa-rotate"></i> Loops</a>
+                <a href="#py-listas" class="subtopic-link"><i class="fa-solid fa-list-ol"></i> Listas</a>
+                <a href="#py-dicts" class="subtopic-link"><i class="fa-solid fa-book"></i> Dicionários</a>
+
+                <div class="topic-header">Pandas (Dados)</div>
+                <a href="#pd-leitura" class="subtopic-link"><i class="fa-solid fa-file-csv"></i> Leitura & Info</a>
+                <a href="#pd-filtros" class="subtopic-link"><i class="fa-solid fa-filter"></i> Filtros & Seleção</a>
+                <a href="#pd-limpeza" class="subtopic-link"><i class="fa-solid fa-broom"></i> Limpeza (NaN)</a>
+                
+                <div class="topic-header">Visualização</div>
+                <a href="#viz-matplotlib" class="subtopic-link"><i class="fa-solid fa-chart-line"></i> Matplotlib</a>
+                <a href="#viz-seaborn" class="subtopic-link"><i class="fa-solid fa-chart-pie"></i> Seaborn</a>
+                <a href="#viz-integracao" class="subtopic-link"><i class="fa-solid fa-puzzle-piece"></i> Integração</a>
+            `,
+        git: `
+                <div class="topic-header">Comandos Essenciais</div>
+                <a href="#git-init" class="subtopic-link"><i class="fa-solid fa-play"></i> git init</a>
+                <a href="#git-add" class="subtopic-link"><i class="fa-solid fa-plus"></i> git add</a>
+                <a href="#git-commit" class="subtopic-link"><i class="fa-solid fa-check"></i> git commit</a>
+                <a href="#git-push" class="subtopic-link"><i class="fa-solid fa-cloud-arrow-up"></i> git push</a>
+                <a href="#git-pull" class="subtopic-link"><i class="fa-solid fa-cloud-arrow-down"></i> git pull</a>
+            `,
+      };
+
+      // Index para busca
+      let searchIndex = [];
+
+      function buildSearchIndex() {
+        searchIndex = [];
+        const sections = document.querySelectorAll("section[id]");
+
+        sections.forEach((section) => {
+          // Tenta achar um título legível
+          let title = section.getAttribute("data-title");
+          if (!title) {
+            const h3 = section.querySelector("h3");
+            title = h3 ? h3.innerText : section.id;
+          }
+
+          // Identifica o módulo pai (python ou git)
+          const parentView = section.closest('div[id^="view-"]');
+          const moduleId = parentView ? parentView.id.replace("view-", "") : "";
+
+          searchIndex.push({
+            id: section.id,
+            moduleId: moduleId,
+            title: title,
+            text: section.innerText.toLowerCase(),
+          });
+        });
+      }
+
+      function handleSearch() {
+        const query = document
+          .getElementById("search-input")
+          .value.toLowerCase();
+        const resultsContainer = document.getElementById("search-results");
+
+        if (query.length < 2) {
+          resultsContainer.classList.add("hidden");
+          return;
+        }
+
+        // Filtra
+        const results = searchIndex.filter(
+          (item) =>
+            item.title.toLowerCase().includes(query) ||
+            item.text.includes(query)
+        );
+
+        // Renderiza
+        if (results.length > 0) {
+          resultsContainer.innerHTML = results
+            .map(
+              (item) => `
+                    <div class="search-item p-3 border-b border-gray-700 last:border-0 flex items-center" 
+                         onclick="goToResult('${item.moduleId}', '${item.id}')">
+                        <span class="w-2 h-2 rounded-full mr-3 ${
+                          item.moduleId === "python"
+                            ? "bg-yellow-500"
+                            : "bg-orange-500"
+                        }"></span>
+                        <div>
+                            <div class="text-sm font-bold text-gray-200">${
+                              item.title
+                            }</div>
+                            <div class="text-xs text-gray-500 uppercase">${
+                              item.moduleId
+                            }</div>
+                        </div>
+                    </div>
+                `
+            )
+            .join("");
+          resultsContainer.classList.remove("hidden");
+        } else {
+          resultsContainer.innerHTML =
+            '<div class="p-3 text-sm text-gray-500 text-center">Nenhum resultado encontrado</div>';
+          resultsContainer.classList.remove("hidden");
+        }
+      }
+
+      function goToResult(moduleId, sectionId) {
+        // Limpa busca
+        document.getElementById("search-input").value = "";
+        document.getElementById("search-results").classList.add("hidden");
+
+        // Navega
+        switchView(moduleId);
+
+        // Scroll com delay para garantir que a view abriu
+        setTimeout(() => {
+          const element = document.getElementById(sectionId);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "start" });
+            // Highlight temporário visual
+            element.classList.add("bg-gray-800");
+            setTimeout(() => element.classList.remove("bg-gray-800"), 1000);
+          }
+        }, 100);
+      }
+
+      // Função de troca de views (SPA Logic)
+      function switchView(viewName) {
+        // 1. Esconder todas as views
+        document.getElementById("view-home").classList.add("hidden-section");
+        document.getElementById("view-python").classList.add("hidden-section");
+        document.getElementById("view-git").classList.add("hidden-section");
+
+        // 2. Mostrar a view selecionada
+        const selectedView = document.getElementById(`view-${viewName}`);
+        if (selectedView) {
+          selectedView.classList.remove("hidden-section");
+        }
+
+        // 3. Atualizar botões do menu lateral (Active State)
+        document
+          .querySelectorAll(".module-link")
+          .forEach((btn) => btn.classList.remove("active"));
+        const activeBtn = document.getElementById(`btn-${viewName}`);
+        if (activeBtn) activeBtn.classList.add("active");
+
+        // 4. Injetar o submenu correto
+        const submenuContainer = document.getElementById("submenu-container");
+        submenuContainer.innerHTML = submenus[viewName] || "";
+
+        // Re-aplicar listeners de click nos novos links para destacar
+        document.querySelectorAll(".subtopic-link").forEach((link) => {
+          link.addEventListener("click", function () {
+            document
+              .querySelectorAll(".subtopic-link")
+              .forEach((l) => l.classList.remove("active"));
+            this.classList.add("active");
+          });
+        });
+
+        // Scroll to top (apenas se não for via busca)
+        if (!window.isSearching) window.scrollTo(0, 0);
+      }
+
+      // Inicialização
+      window.addEventListener("load", () => {
+        switchView("home");
+        // Constrói o índice de busca
+        setTimeout(buildSearchIndex, 500);
+      });
+
+      // Fecha busca ao clicar fora
+      document.addEventListener("click", (e) => {
+        if (
+          !e.target.closest("#search-input") &&
+          !e.target.closest("#search-results")
+        ) {
+          document.getElementById("search-results").classList.add("hidden");
+        }
+      });
+    </script>
+  </body>
+</html>
