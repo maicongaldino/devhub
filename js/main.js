@@ -129,6 +129,7 @@ function switchView(viewName) {
     link.addEventListener("click", function () {
       document.querySelectorAll(".subtopic-link").forEach((l) => l.classList.remove("active"));
       this.classList.add("active");
+      if (window.innerWidth < 768) closeSidebar();
     });
   });
 
