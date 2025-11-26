@@ -145,3 +145,7 @@ document.addEventListener("click", (e) => {
     document.getElementById("search-results").classList.add("hidden");
   }
 });
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}

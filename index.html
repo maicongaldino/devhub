@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DevHub: Central de Estudos</title>
+    <meta name="theme-color" content="#4f46e5" />
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
@@ -11,13 +12,15 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg" />
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body class="bg-gray-950 text-gray-300 font-sans overflow-x-hidden">
     <div class="flex flex-col md:flex-row min-h-screen">
       <!-- SIDEBAR -->
       <aside
-        class="w-full md:w-72 bg-gray-900 border-r border-gray-800 fixed md:h-screen z-20 flex flex-col shadow-2xl"
+        class="w-full md:w-72 bg-gray-900 border-r border-gray-800 md:fixed md:h-screen z-20 flex flex-col shadow-2xl"
       >
         <!-- Logo -->
         <div
